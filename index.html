@@ -97,14 +97,7 @@
                     
                     <label><span>หมวดหมู่บริการ</span></label>
                     <select id="v_category">
-                        <option value="ซอย">ซอย</option>
-                        <option value="ทำสี ดัด ยืด">ทำสี ดัด ยืด</option>
-                        <option value="ทรีทเม้นท์">ทรีทเม้นท์</option>
-                        <option value="สระไดร์">สระไดร์</option>
-                        <option value="ขายสินค้า">ขายสินค้า</option>
-                        <option value="ขายคอร์ส เล็ก">ขายคอร์ส เล็ก</option>
-                        <option value="ขายคอร์ส ใหญ่">ขายคอร์ส ใหญ่</option>
-                        <option value="เคราติน">เคราติน</option>
+                        <option value="">กำลังโหลดหมวดหมู่...</option>
                     </select>
                     
                     <label><span>ค่าคอมมิชชัน (คำนวณเข้าช่าง)*</span></label>
@@ -162,6 +155,21 @@
         // 🌟 ตัวแปรเก็บข้อมูลบริการทั้งหมด เพื่อใช้คำนวณหารหัสถัดไป
         let ALL_SERVICES_CACHE = [];
 
+        // 🌟 ฟังก์ชันดึงหมวดหมู่จาก Google Sheets (CostSettings) มาใส่ใน Dropdown
+        function loadCategories() {
+            callAPI(`${GAS_URL}?action=getCategories`, function(res) {
+                if(res.status === "success") {
+                    let html = "";
+                    res.data.forEach(cat => {
+                        html += `<option value="${cat}">${cat}</option>`;
+                    });
+                    document.getElementById('v_category').innerHTML = html || '<option value="">ไม่พบข้อมูลหมวดหมู่</option>';
+                } else {
+                    document.getElementById('v_category').innerHTML = '<option value="">โหลดข้อมูลล้มเหลว</option>';
+                }
+            });
+        }
+
         function verifyAccess() {
             let pin = document.getElementById('pinInput').value;
             if(!pin) return alert("กรุณากรอกรหัส PIN");
@@ -174,6 +182,7 @@
                     document.getElementById('userBadge').innerText = CURRENT_USER_NAME;
                     addLog("เข้าสู่ระบบจัดการเมนูบริการ");
                     
+                    loadCategories(); // 🌟 สั่งให้ดึงข้อมูลหมวดหมู่มาแสดงตอนเข้าระบบสำเร็จ
                     loadServices();
                     REFRESH_INTERVAL_ID = setInterval(loadServices, 15000); 
                 } else {
